@@ -1,0 +1,35 @@
+# Ambiente virtual
+venv/
+.venv/
+env/
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Banco local
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# Modelos gerados
+models/*.pkl
+models/*.joblib
+models/*.xml
+
+# Saídas geradas
+outputs/
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# VS Code
+.vscode/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
