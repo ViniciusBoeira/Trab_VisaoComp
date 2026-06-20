@@ -23,6 +23,10 @@ models/*.xml
 outputs/
 *.log
 
+# data raw
+data/raw
+
+
 # Arquivos temporários
 *.tmp
 *.temp
