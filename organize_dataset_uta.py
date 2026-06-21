@@ -21,12 +21,12 @@ def short_hash(path: Path):
 
 
 def detect_label(video_path: Path):
-    """
-    Detecta label pelo nome do arquivo ou pelas pastas.
-    Ajustado para UTA:
-    0  -> NORMAL
-    10 -> SONOLENTO
-    """
+    
+    # Detecta label pelo nome do arquivo ou pelas pastas.
+    # Ajustado para UTA:
+    # 0  -> NORMAL
+    # 10 -> SONOLENTO
+    
 
     path_text = str(video_path).lower()
     stem = video_path.stem.lower()
@@ -50,10 +50,9 @@ def detect_label(video_path: Path):
 
 
 def make_unique_filename(video_path: Path, label: str, index: int):
-    """
-    Gera nomes únicos para evitar colisão.
-    Usa label + contador + hash do caminho original.
-    """
+
+    # Gera nomes únicos para evitar colisão.
+    # Usa label + contador + hash do caminho original.
 
     label_prefix = "normal" if label == "NORMAL" else "drowsy"
     file_hash = short_hash(video_path)

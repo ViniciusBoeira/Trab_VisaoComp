@@ -1,26 +1,14 @@
-from pathlib import Path
-
 import pandas as pd
+
+from src.config import DATASET_OUTPUT_CSV
+from src.temporal_features import FEATURE_COLUMNS
 
 
 pd.set_option("display.max_columns", None)
-pd.set_option("display.width", 220)
+pd.set_option("display.width", 240)
 
 
-BASE_DIR = Path(__file__).resolve().parent
-DATASET_PATH = BASE_DIR / "data" / "processed" / "features_all.csv"
-
-FEATURE_COLUMNS = [
-    "mean_ear",
-    "min_ear",
-    "std_ear",
-    "perclos",
-    "longest_eye_close",
-    "mean_mar",
-    "max_mar",
-    "std_mar",
-    "mouth_open_ratio",
-]
+DATASET_PATH = DATASET_OUTPUT_CSV
 
 REQUIRED_COLUMNS = FEATURE_COLUMNS + [
     "label",
@@ -59,6 +47,10 @@ def main():
     print("\nNaN por coluna:")
     print(df.isna().sum())
 
+    print("\nValores infinitos/nulos nas features:")
+    invalid_values = df[FEATURE_COLUMNS].replace([float("inf"), float("-inf")], pd.NA).isna().sum()
+    print(invalid_values)
+
     print("\nResumo geral das features:")
     print(df[FEATURE_COLUMNS].describe())
 
@@ -67,12 +59,6 @@ def main():
 
     print("\nMedianas por classe:")
     print(df.groupby("label")[FEATURE_COLUMNS].median().T)
-
-    print("\nResumo por classe:")
-    summary = df.groupby("label")[FEATURE_COLUMNS].agg(
-        ["mean", "median", "min", "max", "std"]
-    )
-    print(summary)
 
     print("\nQuantidade de janelas por vídeo:")
     print(df.groupby(["label", "video_name"]).size())
@@ -84,32 +70,24 @@ def main():
         print("\nQuantidade de grupos por classe:")
         print(df.groupby("label")["group_id"].nunique())
 
-        print("\nGrupos existentes:")
-        print(sorted(df["group_id"].unique()))
-
         print("\nClasses presentes em cada grupo:")
         group_classes = df.groupby("group_id")["label"].unique()
 
         for group_id, labels in group_classes.items():
             print(f"{group_id}: {list(labels)}")
 
-        groups_with_multiple_classes = [
+        paired_groups = [
             group_id
             for group_id, labels in group_classes.items()
             if len(labels) > 1
         ]
 
-        if groups_with_multiple_classes:
-            print("\nOK: grupos com mais de uma classe encontrados.")
-            print("Isso é bom se o mesmo participante tem vídeo NORMAL e SONOLENTO.")
-            print(groups_with_multiple_classes)
+        if paired_groups:
+            print("\nOK: há grupos com NORMAL e SONOLENTO juntos.")
+            print("Isso é bom se representam a mesma pessoa/participante.")
         else:
-            print("\nAVISO: nenhum group_id aparece com mais de uma classe.")
-            print("Isso não é necessariamente erro, mas confira se group_id está representando a pessoa/participante corretamente.")
-
-    else:
-        print("\nAVISO: coluna group_id não encontrada.")
-        print("O treino poderá usar video_name como grupo, mas group_id seria melhor para evitar vazamento por pessoa.")
+            print("\nAVISO: nenhum group_id possui mais de uma classe.")
+            print("Se normal_001 e drowsy_001 forem a mesma pessoa, revise infer_group_id.")
 
     if "window_index" in df.columns:
         print("\nJanelas por vídeo, usando window_index:")
@@ -129,18 +107,14 @@ def main():
     duplicated_rows = df.duplicated().sum()
     print(f"Linhas duplicadas: {duplicated_rows}")
 
-    print("\nChecagem de valores infinitos/nulos nas features:")
-    invalid_values = df[FEATURE_COLUMNS].replace([float("inf"), float("-inf")], pd.NA).isna().sum()
-    print(invalid_values)
-
     print("\nCHECK FINAL:")
 
     if df.empty:
         print("ERRO: dataset vazio.")
     elif df["label"].nunique() < 2:
         print("ERRO: dataset possui menos de 2 classes.")
-    elif df[FEATURE_COLUMNS].isna().sum().sum() > 0:
-        print("ERRO: existem NaNs nas features.")
+    elif invalid_values.sum() > 0:
+        print("ERRO: existem NaNs ou infinitos nas features.")
     else:
         print("Dataset parece válido para treino.")
 
